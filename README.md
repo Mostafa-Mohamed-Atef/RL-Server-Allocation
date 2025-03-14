@@ -1,98 +1,84 @@
-# Project: Optimal Server Allocation using Reinforcement Learning
+# Server Allocation Reinforcement Learning Project
+
+This project implements a reinforcement learning (RL) solution for a server allocation problem using the Proximal Policy Optimization (PPO) algorithm from the `stable-baselines3` library. The goal is to dynamically allocate servers to handle incoming demand while optimizing resource utilization and minimizing queue length.
+
+## Table of Contents
+1. [Overview](#overview)
+2. [Code Structure](#code-structure)
+3. [Environment Details](#environment-details)
+4. [Custom Neural Network](#custom-neural-network)
+5. [Training Process](#training-process)
+---
 
 ## Overview
-This project aims to develop a Reinforcement Learning (RL) algorithm to determine the optimal number of servers to use in a client-server environment under varying demand levels. The goal is to balance resource usage, ensuring that the system is neither over-provisioned (wasting resources) nor under-provisioned (leading to poor performance). The project involves creating a simulator for the client-server environment, developing an RL agent, integrating the agent with the simulator, and evaluating its performance against other policies.
 
-## Milestones
+The project simulates a server allocation scenario where the RL agent must decide how many servers to activate or deactivate based on incoming demand. The environment is designed to mimic real-world server allocation challenges, such as fluctuating demand patterns and the need to balance resource utilization and queue length.
 
-### Milestone 1: Project Setup and Research
-**Objective**: Set up the project environment and conduct initial research on Reinforcement Learning and client-server systems.
+The key components of the project include:
+- A custom Gymnasium environment (`ServerAllocationEnv`) that simulates server allocation dynamics.
+- A custom neural network (`CustomNetwork`) for feature extraction in the PPO algorithm.
+- A PPO model configured with a linear learning rate schedule and custom hyperparameters.
 
-- **Tasks**:
-  - Set up the development environment (Python, necessary libraries like TensorFlow, PyTorch, OpenAI Gym).
-  - Conduct literature review on Reinforcement Learning algorithms and their applications in resource management.
-  - Research client-server architectures and network protocols.
-  - Identify relevant ethical considerations and engineering standards (e.g., RFC 1856).
+---
 
-- **Deliverables**:
-  - Project environment setup.
-  - Literature review report.
-  - Initial project plan and timeline.
+## Code Structure
 
-### Milestone 2: Develop Client-Server Environment Simulator
-**Objective**: Create a simulator that models the client-server environment and captures demand fluctuations.
+The code is organized as follows:
+- **Environment (`ServerAllocationEnv`)**: Defines the server allocation problem, including state representation, action space, and reward function.
+- **Custom Neural Network (`CustomNetwork`)**: A feature extractor with separate policy and value networks.
+- **PPO Model**: Configured with custom hyperparameters and trained in phases.
+- **Utility Functions**: Includes a linear learning rate scheduler.
 
-- **Tasks**:
-  - Design the architecture of the simulator.
-  - Implement the simulator to model server load and client requests.
-  - Validate the simulator by testing with different demand scenarios.
+---
 
-- **Deliverables**:
-  - Functional client-server environment simulator.
-  - Documentation on simulator design and usage.
+## Environment Details
 
-### Milestone 3: Develop Reinforcement Learning Algorithm
-**Objective**: Design and implement an RL algorithm to determine the optimal number of servers.
+### `ServerAllocationEnv`
+This Gymnasium environment simulates a server allocation scenario with the following features:
+- **State Space**: A 4-dimensional vector representing:
+  1. Normalized number of active servers.
+  2. Normalized queue length.
+  3. Normalized current demand.
+  4. Normalized demand trend.
+- **Action Space**: Discrete actions:
+  - `0`: Decrease the number of active servers.
+  - `1`: Maintain the current number of active servers.
+  - `2`: Increase the number of active servers.
+- **Reward Function**: Balances server utilization, queue length, and server activation costs.
+- **Demand Patterns**: Supports Poisson and sinusoidal demand patterns.
 
-- **Tasks**:
-  - Choose an appropriate RL algorithm (e.g., Q-learning, DQN, Policy Gradient).
-  - Implement the RL algorithm in the development environment.
-  - Train the RL agent using the simulator.
+### Key Methods:
+- `reset()`: Resets the environment to its initial state.
+- `step(action)`: Executes an action and returns the next state, reward, and termination flags.
+- `_get_state()`: Computes the current state of the environment.
+- `_generate_demand()`: Generates demand based on the selected pattern.
+- `_calculate_reward()`: Computes the reward based on utilization, queue length, and server activation.
 
-- **Deliverables**:
-  - Functional RL algorithm.
-  - Initial training results and performance metrics.
+---
 
-### Milestone 4: Integrate RL Agent with Simulator
-**Objective**: Integrate the developed RL agent with the client-server environment simulator.
+## Custom Neural Network
 
-- **Tasks**:
-  - Modify the simulator to interact with the RL agent.
-  - Implement the reward function based on server usage and demand satisfaction.
-  - Test the integrated system with various demand scenarios.
+### `CustomNetwork`
+A custom feature extractor for the PPO algorithm, consisting of two separate networks:
+1. **Policy Network**: Extracts features for the policy head.
+2. **Value Network**: Extracts features for the value head.
 
-- **Deliverables**:
-  - Integrated RL agent and simulator.
-  - Documentation on integration process and testing results.
+Both networks use fully connected layers with ReLU activation and a Tanh output layer.
 
-### Milestone 5: Evaluate and Compare RL Agent Performance
-**Objective**: Evaluate the performance of the RL agent and compare it with other suboptimal policies.
+---
 
-- **Tasks**:
-  - Develop baseline policies for comparison (e.g., fixed number of servers, heuristic-based policies).
-  - Conduct performance evaluation using metrics such as resource usage, demand satisfaction, and response time.
-  - Analyze results and identify areas for improvement.
+## Training Process
 
-- **Deliverables**:
-  - Performance evaluation report.
-  - Comparison with baseline policies.
-  - Recommendations for further improvements.
+The PPO model is trained in three phases, each consisting of 200,000 timesteps. Key configurations include:
+- **Learning Rate**: A linear schedule from `3e-4` to `1e-5`.
+- **Batch Size**: 256.
+- **Number of Epochs**: 10 per update.
+- **Gamma**: 0.99 (discount factor).
+- **GAE Lambda**: 0.98 (Generalized Advantage Estimation).
+- **Clip Range**: 0.3 (clipping parameter for PPO).
+- **Entropy Coefficient**: 0.02 (encourages exploration).
+- **Value Function Coefficient**: 1.5 (weight for value loss).
 
-### Milestone 6: Final Documentation and Presentation
-**Objective**: Prepare final documentation and present the project findings.
+Intermediate models can be saved after each phase, and the final model is saved at the end of training.
 
-- **Tasks**:
-  - Compile all project documentation, including design, implementation, and evaluation details.
-  - Prepare a presentation summarizing the project objectives, methodology, results, and conclusions.
-  - Address any feedback and make final adjustments to the project.
-
-- **Deliverables**:
-  - Final project report.
-  - Presentation slides.
-  - Updated codebase with all improvements.
-
-## Prerequisites
-- **Courses**: Probabilistic Methods in Electrical and Computer Engineering (CE302/EE302), Programming skills (CE 264 and CE364), Introduction to Computer Communication Networks (CE463).
-- **Skills**: Proficiency in Python, understanding of Reinforcement Learning, knowledge of client-server architectures, and simulation development.
-
-## Ethical Considerations
-- Conserve network resources to reduce power consumption and CO2 footprint.
-- Ensure the RL agent's decisions do not negatively impact system performance or user experience.
-
-## Expected Output
-- A functional Multi-server Policy RL agent.
-- A simulator of a client-server environment.
-- Integration between the RL agent and the simulator.
-- Evaluation of the RL agent's policy and comparison with other policies.
-
-By following these milestones, the project will systematically progress from initial research and setup to the final evaluation and presentation of a robust RL-based solution for optimal server allocation.
+---
